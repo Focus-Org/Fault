@@ -9,7 +9,6 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "check-version": "./scripts/check-version.sh",

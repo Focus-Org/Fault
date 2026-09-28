@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
       - run: npm run test
 
-  # Bloque la PR si la version n'a pas été incrémentée
+    # Bloque la PR si la version n'a pas été incrémentée
   check_version:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -60,11 +60,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(jq -r '.version' package.json)
-          NOTES="$(echo "$VERSION" | tr . _).md"
           gh release create "v$VERSION" \
             --target "$GITHUB_SHA" \
             --title "v$VERSION" \
-            --notes-file "$NOTES"
+            --notes-file "releases/$VERSION.md"
 
   publish:
     needs: [release]
@@ -79,7 +78,7 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org/"
-          scope: "@focus-labs"
+          scope: "@mlagie"
       - run: npm ci
       - run: npm publish --provenance --access public
         env:
