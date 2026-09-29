@@ -42,8 +42,8 @@ jobs:
       - run: npm run check-version
 
   release:
-    needs: [check_security, integrity, check_version]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/cs'
+    needs: [check_security, integrity]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
