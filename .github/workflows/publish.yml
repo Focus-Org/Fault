@@ -64,11 +64,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          NOTES="$(echo "$VERSION" | tr . _).md"
           gh release create "v$VERSION" \
             --target "$GITHUB_SHA" \
             --title "v$VERSION" \
-            --notes-file "$NOTES"
+            --notes-file "releases/$VERSION.md"
 
   publish:
     needs: [release]
