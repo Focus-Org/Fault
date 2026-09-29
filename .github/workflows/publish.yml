@@ -44,8 +44,10 @@ jobs:
   # Après le merge sur main : tag + release GitHub
   release:
     needs: [check_security, integrity, check_version]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/cs'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     permissions:
       contents: write
     steps:
@@ -55,15 +57,19 @@ jobs:
           node-version: 22
       - name: Vérifier la version
         run: npm run check-version
+      - name: Lire la version
+        id: version
+        run: echo "version=$(jq -r '.version' package.json)" >> "$GITHUB_OUTPUT"
       - name: Créer le tag et la release GitHub
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(jq -r '.version' package.json)
+          VERSION="${{ steps.version.outputs.version }}"
+          NOTES="$(echo "$VERSION" | tr . _).md"
           gh release create "v$VERSION" \
             --target "$GITHUB_SHA" \
             --title "v$VERSION" \
-            --notes-file "releases/$VERSION.md"
+            --notes-file "$NOTES"
 
   publish:
     needs: [release]
@@ -83,3 +89,29 @@ jobs:
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  rollback:
+    needs: [release, publish]
+    if: ${{ always() && needs.release.result == 'success' && needs.publish.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22
+      - name: Supprimer la release et le tag si la version n'est pas sur npm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.release.outputs.version }}
+          PACKAGE: "@focus-labs/fault-client"
+        run: |
+          PUBLISHED=$(npm view "$PACKAGE@$VERSION" version 2>/dev/null || true)
+          if [ -n "$PUBLISHED" ]; then
+            echo "La version $VERSION est déjà sur npm : on ne supprime rien."
+            exit 0
+          fi
+          gh release delete "v$VERSION" \
+            --repo "${{ github.repository }}" \
+            --cleanup-tag \
+            --yes
