@@ -43,7 +43,7 @@ jobs:
 
   # Après le merge sur main : tag + release GitHub
   release:
-    needs: [check_security, integrity]
+    needs: [check_security, integrity, check_version]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
