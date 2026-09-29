@@ -82,7 +82,7 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org/"
-          scope: "@mlagie"
+          scope: "@focus-labs"
       - run: npm ci
       - run: npm publish --provenance --access public
         env:
