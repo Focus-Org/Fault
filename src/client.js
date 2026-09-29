@@ -1,6 +1,6 @@
-const axios = require('axios')
+import axios from 'axios'
 
-class FaultApiClient {
+export class FaultApiClient {
   constructor(options) {
     this.personalToken = options.personalToken
 
@@ -63,5 +63,3 @@ class FaultApiClient {
     return Object.fromEntries(entries)
   }
 }
-
-module.exports = { FaultApiClient }

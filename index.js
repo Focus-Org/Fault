@@ -1,3 +1,1 @@
-const { FaultApiClient } = require('./src/client.js')
-
-module.exports = { FaultApiClient }
+export { FaultApiClient } from './src/client.js'

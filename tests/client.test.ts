@@ -1,14 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createRequire } from 'node:module'
-import type { AxiosStatic } from 'axios'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import axios from 'axios'
+import { FaultApiClient } from '../index.js'
 
-// Le client est en CommonJS : il charge axios via `require('axios')`, ce que
-// `vi.mock('axios')` ne peut pas intercepter. On charge donc le client ET axios
-// avec le même `require` Node (même instance en cache), puis on espionne
-// `axios.create` et `axios.isAxiosError`.
-const nodeRequire = createRequire(import.meta.url)
-const axios = nodeRequire('axios') as AxiosStatic
-const { FaultApiClient } = nodeRequire('../index.js') as typeof import('../index.js')
+vi.mock('axios')
+
+const mockedAxios = vi.mocked(axios, { deep: true })
 
 type HttpMock = {
   post: ReturnType<typeof vi.fn>
@@ -26,19 +22,11 @@ function createHttpMock(): HttpMock {
 
 describe('FaultApiClient', () => {
   let httpMock: HttpMock
-  let createSpy: ReturnType<typeof vi.spyOn>
-  let isAxiosErrorSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     httpMock = createHttpMock()
-    createSpy = vi
-      .spyOn(axios, 'create')
-      .mockReturnValue(httpMock as unknown as ReturnType<typeof axios.create>)
-    isAxiosErrorSpy = vi.spyOn(axios, 'isAxiosError').mockReturnValue(false)
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
+    mockedAxios.create.mockReturnValue(httpMock as unknown as ReturnType<typeof axios.create>)
+    mockedAxios.isAxiosError.mockReturnValue(false)
   })
 
   function makeClient(personalToken?: string) {
@@ -52,7 +40,7 @@ describe('FaultApiClient', () => {
   it("construit l'instance axios avec le Bearer token et baseURL fournis", () => {
     makeClient()
 
-    expect(createSpy).toHaveBeenCalledWith({
+    expect(mockedAxios.create).toHaveBeenCalledWith({
       baseURL: 'http://localhost:3000/api',
       headers: {
         'Content-Type': 'application/json',
@@ -177,17 +165,14 @@ describe('FaultApiClient', () => {
     it("transforme une erreur Axios en Error avec le message renvoyé par l'API", () => {
       makeClient()
 
-      // Récupère le handler d'erreur passé à interceptors.response.use(...)
       const [, errorHandler] = httpMock.interceptors.response.use.mock.calls[0]
 
-      isAxiosErrorSpy.mockReturnValue(true)
+      mockedAxios.isAxiosError.mockReturnValue(true)
       const axiosError = {
         response: { data: { error: 'Token personnel invalide.' } },
         message: 'Request failed with status code 401'
       }
 
-      // errorHandler lance de façon SYNCHRONE (throw), il ne renvoie pas
-      // une promesse rejetée : on ne peut donc pas utiliser `rejects` ici.
       expect(() => errorHandler(axiosError)).toThrow('Token personnel invalide.')
     })
 
@@ -195,7 +180,7 @@ describe('FaultApiClient', () => {
       makeClient()
 
       const [, errorHandler] = httpMock.interceptors.response.use.mock.calls[0]
-      isAxiosErrorSpy.mockReturnValue(false)
+      mockedAxios.isAxiosError.mockReturnValue(false)
 
       const genericError = new Error('boom')
 
