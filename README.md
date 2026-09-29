@@ -24,7 +24,7 @@ npm install @focus-labs/fault-client
 ## Initialisation
 
 ```ts
-import { FaultApiClient } from './client.js'
+import { FaultApiClient } from '@focus-labs/fault-client'
 
 const client = new FaultApiClient({
   baseURL: 'http://localhost:3000/api',

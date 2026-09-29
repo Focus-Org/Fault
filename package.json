@@ -1,6 +1,6 @@
 {
   "name": "@focus-labs/fault-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Client Node.js/TypeScript (Axios) pour contacter l'API FAULT sans passer par curl.",
   "type": "module",
   "main": "src/index.js",
