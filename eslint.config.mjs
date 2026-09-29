@@ -8,8 +8,8 @@ export default [
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  security.configs.recommended,
   {
-    // Config existante pour d'éventuels fichiers .js CommonJS (ex: scripts).
     files: ["**/*.js"],
     languageOptions: {
       sourceType: "commonjs",
@@ -47,9 +47,10 @@ export default [
     }
   },
   {
-    // Ce package (@fault/api-client) est en TypeScript + ESM ("type": "module")
-    // — sans ce bloc, aucun fichier .ts ne matche et tout est ignoré.
     files: ["**/*.ts"],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off'
+    },
     languageOptions: {
       sourceType: "module",
       parserOptions: {
@@ -74,8 +75,6 @@ export default [
       ],
       "security/detect-non-literal-fs-filename": "off",
       "security/detect-unsafe-regex": "off",
-      // La règle de base ne comprend pas les types (interfaces, imports
-      // "type"...) : on la désactive au profit de la variante TS.
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",

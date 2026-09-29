@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import axios from 'axios'
-import { FaultApiClient } from '../'
+import { FaultApiClient } from '../index.js'
 
 vi.mock('axios')
 
@@ -165,7 +165,6 @@ describe('FaultApiClient', () => {
     it("transforme une erreur Axios en Error avec le message renvoyé par l'API", () => {
       makeClient()
 
-      // Récupère le handler d'erreur passé à interceptors.response.use(...)
       const [, errorHandler] = httpMock.interceptors.response.use.mock.calls[0]
 
       mockedAxios.isAxiosError.mockReturnValue(true)
@@ -174,8 +173,6 @@ describe('FaultApiClient', () => {
         message: 'Request failed with status code 401'
       }
 
-      // errorHandler lance de façon SYNCHRONE (throw), il ne renvoie pas
-      // une promesse rejetée : on ne peut donc pas utiliser `rejects` ici.
       expect(() => errorHandler(axiosError)).toThrow('Token personnel invalide.')
     })
 

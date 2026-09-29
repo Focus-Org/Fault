@@ -1,0 +1,1 @@
+export { FaultApiClient } from './src/client.js'
